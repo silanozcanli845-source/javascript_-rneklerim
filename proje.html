@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS Kapsamlı Görev & Not Yöneticisi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        h1, h2 { color: #333; text-align: center; }
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover { background-color: #218838; }
+        ul { list-style: none; padding: 0; }
+        li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 5px solid #007bff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-radius: 4px;
+        }
+        li.completed {
+            border-left-color: #28a745;
+            text-decoration: line-through;
+            color: gray;
+        }
+        .actions button {
+            background-color: #dc3545;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        .actions button.complete-btn {
+            background-color: #ffc107;
+            color: black;
+            margin-right: 5px;
+        }
+        .stats {
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Görev & Not Yöneticisi</h1>
+    
+    <!-- Veri Ekleme Formu -->
+    <form id="taskForm">
+        <input type="text" id="taskInput" placeholder="Yeni bir görev yazın..." required>
+        <select id="prioritySelect">
+            <option value="Normal">Normal</option>
+            <option value="Önemli">Önemli</option>
+        </select>
+        <button type="submit">Ekle</button>
+    </form>
+
+    <!-- İstatistik Alanı (Döngüler ve Koşullar) -->
+    <div class="stats" id="statsArea">Toplam Görev: 0 | Tamamlanan: 0</div>
+
+    <!-- Listeleme Alanı -->
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+    // 1. Değişkenler ve localStorage'dan Veri Çekme (Dizi ve Nesneler)
+    let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+    const taskForm = document.getElementById('taskForm');
+    const taskInput = document.getElementById('taskInput');
+    const prioritySelect = document.getElementById('prioritySelect');
+    const taskList = document.getElementById('taskList');
+    const statsArea = document.getElementById('statsArea');
+
+    // 2. Arayüzü Güncelleyen Fonksiyon (Döngüler ve DOM Manipülasyonu)
+    function renderTasks() {
+        // Listeyi sıfırla
+        taskList.innerHTML = '';
+
+        let completedCount = 0;
+
+        // Döngü: Dizideki her bir elemanı dönme
+        tasks.forEach((task, index) => {
+            if (task.completed) {
+                completedCount++;
+            }
+
+            const li = document.createElement('li');
+            if (task.completed) {
+                li.classList.add('completed');
+            }
+
+            li.innerHTML = `
+                <span><strong>[${task.priority}]</strong> ${task.text}</span>
+                <div class="actions">
+                    <button class="complete-btn" onclick="toggleTask(${index})">✔</button>
+                    <button onclick="deleteTask(${index})">Sil</button>
+                </div>
+            `;
+
+            taskList.appendChild(li);
+        });
+
+        // İstatistikleri Güncelle
+        statsArea.textContent = `Toplam Görev: ${tasks.length} | Tamamlanan: ${completedCount}`;
+
+        // Verileri tarayıcıda sakla
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+    }
+
+    // 3. Yeni Görev Ekleme Fonksiyonu
+    taskForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // Sayfanın yenilenmesini engelle
+
+        const newTask = {
+            text: taskInput.value.trim(),
+            priority: prioritySelect.value,
+            completed: false
+        };
+
+        // Koşullu kontrol
+        if (newTask.text !== '') {
+            tasks.push(newTask); // Diziye eleman ekleme
+            taskInput.value = ''; // Inputu temizle
+            renderTasks(); // Arayüzü yeniden çiz
+        }
+    });
+
+    // 4. Görev Durumunu Değiştirme (Tamamlandı / Tamamlanmadı)
+    function toggleTask(index) {
+        tasks[index].completed = !tasks[index].completed;
+        renderTasks();
+    }
+
+    // 5. Görev Silme Fonksiyonu
+    function deleteTask(index) {
+        tasks.splice(index, 1); // Diziden eleman silme
+        renderTasks();
+    }
+
+    // Sayfa ilk açıldığında listeyi yükle
+    renderTasks();
+</script>
+
+</body>
+</html>
